@@ -7,18 +7,16 @@ async function main() {
   const email = "admin@tscarepalace.com";
   const password = "Admin123!";
 
-  const passwordHash = await bcrypt.hash(password, 10);
-
-  const existingAdmin = await prisma.adminUser.findUnique({
-    where: {
-      email,
-    },
+  const existing = await prisma.adminUser.findUnique({
+    where: { email },
   });
 
-  if (existingAdmin) {
+  if (existing) {
     console.log("❌ Admin already exists.");
     return;
   }
+
+  const passwordHash = await bcrypt.hash(password, 10);
 
   await prisma.adminUser.create({
     data: {

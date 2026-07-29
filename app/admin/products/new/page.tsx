@@ -1,7 +1,23 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createProduct } from "../actions/productActions";
+import { isAuthenticated } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import ImageUpload from "@/components/ImageUpload";
 
-export default function NewProductPage() {
+export default async function NewProductPage() {
+  const authenticated = await isAuthenticated();
+
+  if (!authenticated) {
+    redirect("/admin/login");
+  }
+
+  const categories = await prisma.productCategory.findMany({
+    orderBy: {
+      name: "asc",
+    },
+  });
+
   return (
     <main className="container mx-auto max-w-3xl px-6 py-12">
       <div className="mb-8 flex items-center justify-between">
@@ -30,7 +46,6 @@ export default function NewProductPage() {
             type="text"
             name="name"
             required
-            placeholder="Vitamin C Face Serum"
             className="w-full rounded-xl border border-gray-300 p-4 outline-none focus:border-[#16301F]"
           />
         </div>
@@ -44,7 +59,6 @@ export default function NewProductPage() {
             name="description"
             required
             rows={6}
-            placeholder="Write a detailed description..."
             className="w-full rounded-xl border border-gray-300 p-4 outline-none focus:border-[#16301F]"
           />
         </div>
@@ -60,7 +74,6 @@ export default function NewProductPage() {
               name="price"
               required
               min="1"
-              placeholder="5000"
               className="w-full rounded-xl border border-gray-300 p-4 outline-none focus:border-[#16301F]"
             />
           </div>
@@ -75,7 +88,6 @@ export default function NewProductPage() {
               name="stock"
               required
               min="0"
-              placeholder="25"
               className="w-full rounded-xl border border-gray-300 p-4 outline-none focus:border-[#16301F]"
             />
           </div>
@@ -87,27 +99,24 @@ export default function NewProductPage() {
           </label>
 
           <select
-            name="category"
+            name="categoryId"
+            required
             className="w-full rounded-xl border border-gray-300 p-4 outline-none focus:border-[#16301F]"
           >
-            <option value="cosmetics">Cosmetics</option>
-            <option value="organic">Organic</option>
+            <option value="">Select a category</option>
+
+            {categories.map((category) => (
+              <option
+                key={category.id}
+                value={category.id}
+              >
+                {category.name}
+              </option>
+            ))}
           </select>
         </div>
 
-        <div>
-          <label className="mb-2 block text-lg font-semibold">
-            Image URL
-          </label>
-
-          <input
-            type="url"
-            name="imageUrl"
-            required
-            placeholder="https://example.com/image.jpg"
-            className="w-full rounded-xl border border-gray-300 p-4 outline-none focus:border-[#16301F]"
-          />
-        </div>
+        <ImageUpload />
 
         <button
           type="submit"

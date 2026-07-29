@@ -20,13 +20,13 @@ function createSlug(name: string) {
 export async function createProduct(formData: FormData) {
   const name = (formData.get("name") as string).trim();
   const description = (formData.get("description") as string).trim();
-  const category = formData.get("category") as "cosmetics" | "organic";
+  const categoryId = (formData.get("categoryId") as string).trim();
   const imageUrl = (formData.get("imageUrl") as string).trim();
 
   const price = Number(formData.get("price"));
   const stock = Number(formData.get("stock"));
 
-  if (!name || !description || !imageUrl) {
+  if (!name || !description || !categoryId || !imageUrl) {
     throw new Error("Please fill in all required fields.");
   }
 
@@ -47,9 +47,13 @@ export async function createProduct(formData: FormData) {
       description,
       price,
       stock,
-      category,
       featured: false,
       published: true,
+      category: {
+        connect: {
+          id: categoryId,
+        },
+      },
     },
   });
 
@@ -76,7 +80,7 @@ export async function updateProduct(formData: FormData) {
 
   const name = (formData.get("name") as string).trim();
   const description = (formData.get("description") as string).trim();
-  const category = formData.get("category") as "cosmetics" | "organic";
+  const categoryId = (formData.get("categoryId") as string).trim();
   const imageUrl = (formData.get("imageUrl") as string).trim();
 
   const price = Number(formData.get("price"));
@@ -86,21 +90,27 @@ export async function updateProduct(formData: FormData) {
     throw new Error("Missing product ID.");
   }
 
-  if (!name || !description || !imageUrl) {
+  if (!name || !description || !categoryId || !imageUrl) {
     throw new Error("Please fill in all required fields.");
   }
 
   const slug = createSlug(name);
 
   await prisma.product.update({
-    where: { id },
+    where: {
+      id,
+    },
     data: {
       name,
       slug,
       description,
       price,
       stock,
-      category,
+      category: {
+        connect: {
+          id: categoryId,
+        },
+      },
     },
   });
 
@@ -137,6 +147,44 @@ export async function updateProduct(formData: FormData) {
 }
 
 /* =========================================================
+   TOGGLE FEATURED
+========================================================= */
+
+export async function toggleFeatured(formData: FormData) {
+  const id = formData.get("id") as string;
+
+  if (!id) {
+    throw new Error("Missing product ID.");
+  }
+
+  const product = await prisma.product.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      featured: true,
+    },
+  });
+
+  if (!product) {
+    throw new Error("Product not found.");
+  }
+
+  await prisma.product.update({
+    where: {
+      id,
+    },
+    data: {
+      featured: !product.featured,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/shop");
+  revalidatePath("/admin/products");
+}
+
+/* =========================================================
    DELETE PRODUCT
 ========================================================= */
 
@@ -147,14 +195,12 @@ export async function deleteProduct(formData: FormData) {
     throw new Error("Missing product ID.");
   }
 
-  // Delete images first
   await prisma.productImage.deleteMany({
     where: {
       productId: id,
     },
   });
 
-  // Delete product
   await prisma.product.delete({
     where: {
       id,

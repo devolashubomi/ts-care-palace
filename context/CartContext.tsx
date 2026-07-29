@@ -9,7 +9,7 @@ import {
 } from "react";
 
 export interface CartItem {
-  id: number;
+  id: string;
   name: string;
   price: number;
   image: string;
@@ -19,9 +19,9 @@ export interface CartItem {
 interface CartContextType {
   cart: CartItem[];
   addToCart: (item: Omit<CartItem, "quantity">) => void;
-  removeFromCart: (id: number) => void;
-  increaseQuantity: (id: number) => void;
-  decreaseQuantity: (id: number) => void;
+  removeFromCart: (id: string) => void;
+  increaseQuantity: (id: string) => void;
+  decreaseQuantity: (id: string) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -36,7 +36,6 @@ export function CartProvider({
 }) {
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  // Load cart from localStorage
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
 
@@ -45,7 +44,6 @@ export function CartProvider({
     }
   }, []);
 
-  // Save cart whenever it changes
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
@@ -66,13 +64,13 @@ export function CartProvider({
     });
   }
 
-  function removeFromCart(id: number) {
+  function removeFromCart(id: string) {
     setCart((current) =>
       current.filter((item) => item.id !== id)
     );
   }
 
-  function increaseQuantity(id: number) {
+  function increaseQuantity(id: string) {
     setCart((current) =>
       current.map((item) =>
         item.id === id
@@ -82,7 +80,7 @@ export function CartProvider({
     );
   }
 
-  function decreaseQuantity(id: number) {
+  function decreaseQuantity(id: string) {
     setCart((current) =>
       current
         .map((item) =>

@@ -30,7 +30,8 @@ export default function ProductGrid({
 
       const matchesCategory =
         category === "All" ||
-        product.category.toLowerCase() === category.toLowerCase();
+        product.category.toLowerCase() ===
+          category.toLowerCase();
 
       return matchesSearch && matchesCategory;
     });
@@ -62,7 +63,8 @@ export default function ProductGrid({
         {filteredProducts.map((product) => (
           <ProductCard
             key={product.id}
-            id={product.slug}
+            id={product.id}
+            slug={product.slug}
             name={product.name}
             price={product.price}
             category={product.category}

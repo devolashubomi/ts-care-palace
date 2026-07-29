@@ -7,6 +7,7 @@ import { useCart } from "@/context/CartContext";
 
 type ProductCardProps = {
   id: string;
+  slug: string;
   name: string;
   price: number;
   category: string;
@@ -15,6 +16,7 @@ type ProductCardProps = {
 
 export default function ProductCard({
   id,
+  slug,
   name,
   price,
   category,
@@ -66,7 +68,7 @@ export default function ProductCard({
           </button>
 
           <Link
-            href={`/product/${id}`}
+            href={`/product/${slug}`}
             className="rounded-lg border border-[#16301F] px-4 py-3 font-semibold text-[#16301F] transition hover:bg-[#16301F] hover:text-white"
           >
             View

@@ -11,12 +11,15 @@
   "dependencies": {
     "@prisma/client": "^6.19.0",
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.10.0",
     "iron-session": "^8.0.4",
     "next": "16.2.10",
+    "paystack": "^2.0.1",
     "prisma": "^6.19.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-hot-toast": "^2.6.0"
+    "react-hot-toast": "^2.6.0",
+    "resend": "^6.17.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -40,6 +43,7 @@
     "prisma@6.19.0": true,
     "sharp@0.34.5": true,
     "unrs-resolver@1.12.2": true,
-    "bcrypt@6.0.0": true
+    "bcrypt@6.0.0": true,
+    "esbuild@0.28.1": true
   }
 }

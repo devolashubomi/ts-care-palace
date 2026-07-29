@@ -1,11 +1,21 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { deleteProduct } from "./actions/productActions";
+import { isAuthenticated } from "@/lib/auth";
 
 export default async function ProductsPage() {
+  const authenticated = await isAuthenticated();
+
+  if (!authenticated) {
+    redirect("/admin/login");
+  }
+
   const products = await prisma.product.findMany({
     include: {
       images: true,
+      category: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -15,16 +25,31 @@ export default async function ProductsPage() {
   return (
     <main className="container mx-auto px-6 py-10">
       <div className="mb-10 flex items-center justify-between">
-        <h1 className="text-4xl font-bold text-[#16301F]">
-          Products
-        </h1>
+        <div>
+          <h1 className="text-4xl font-bold text-[#16301F]">
+            Products
+          </h1>
 
-        <Link
-          href="/admin/products/new"
-          className="rounded-xl bg-[#16301F] px-6 py-3 text-white transition hover:bg-[#21452c]"
-        >
-          + Add Product
-        </Link>
+          <p className="mt-2 text-gray-500">
+            Manage your store inventory.
+          </p>
+        </div>
+
+        <div className="flex gap-3">
+          <Link
+            href="/admin"
+            className="rounded-xl border border-[#16301F] px-6 py-3 text-[#16301F] transition hover:bg-[#16301F] hover:text-white"
+          >
+            ← Dashboard
+          </Link>
+
+          <Link
+            href="/admin/products/new"
+            className="rounded-xl bg-[#16301F] px-6 py-3 text-white transition hover:bg-[#21452c]"
+          >
+            + Add Product
+          </Link>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl bg-white shadow">
@@ -36,6 +61,7 @@ export default async function ProductsPage() {
               <th className="p-4 text-left">Category</th>
               <th className="p-4 text-left">Price</th>
               <th className="p-4 text-left">Stock</th>
+              <th className="p-4 text-left">Featured</th>
               <th className="p-4 text-left">Actions</th>
             </tr>
           </thead>
@@ -47,22 +73,32 @@ export default async function ProductsPage() {
                 className="border-b hover:bg-gray-50"
               >
                 <td className="p-4">
-                  <img
+                  <Image
                     src={
                       product.images[0]?.imageUrl ??
                       "/placeholder.png"
                     }
                     alt={product.name}
-                    className="h-16 w-16 rounded-lg object-cover"
+                    width={64}
+                    height={64}
+                    className="rounded-lg object-cover"
                   />
                 </td>
 
-                <td className="p-4 font-medium">
-                  {product.name}
+                <td className="p-4">
+                  <div className="font-semibold">
+                    {product.name}
+                  </div>
+
+                  {!product.published && (
+                    <span className="mt-1 inline-block rounded-full bg-gray-200 px-2 py-1 text-xs">
+                      Hidden
+                    </span>
+                  )}
                 </td>
 
-                <td className="p-4 capitalize">
-                  {product.category}
+                <td className="p-4">
+                  {product.category.name}
                 </td>
 
                 <td className="p-4">
@@ -71,6 +107,18 @@ export default async function ProductsPage() {
 
                 <td className="p-4">
                   {product.stock}
+                </td>
+
+                <td className="p-4">
+                  {product.featured ? (
+                    <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-semibold text-yellow-700">
+                      ⭐ Featured
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
+                      No
+                    </span>
+                  )}
                 </td>
 
                 <td className="p-4">
@@ -92,15 +140,6 @@ export default async function ProductsPage() {
                       <button
                         type="submit"
                         className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
-                        onClick={(e) => {
-                          if (
-                            !confirm(
-                              "Are you sure you want to delete this product?"
-                            )
-                          ) {
-                            e.preventDefault();
-                          }
-                        }}
                       >
                         Delete
                       </button>
@@ -113,7 +152,7 @@ export default async function ProductsPage() {
             {products.length === 0 && (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="p-10 text-center text-gray-500"
                 >
                   No products available.
