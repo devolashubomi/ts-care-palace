@@ -10,6 +10,7 @@ export default async function ShopPage() {
     },
     include: {
       images: true,
+      category: true,
     },
     orderBy: {
       createdAt: "desc",
