@@ -1,4 +1,4 @@
-import { PrismaClient, Category } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -8,6 +8,22 @@ async function main() {
   await prisma.order.deleteMany();
   await prisma.productImage.deleteMany();
   await prisma.product.deleteMany();
+  await prisma.productCategory.deleteMany();
+
+  // Create categories
+  const cosmetics = await prisma.productCategory.create({
+    data: {
+      name: "Cosmetics",
+      slug: "cosmetics",
+    },
+  });
+
+  const organic = await prisma.productCategory.create({
+    data: {
+      name: "Organic",
+      slug: "organic",
+    },
+  });
 
   // Product 1
   await prisma.product.create({
@@ -18,9 +34,9 @@ async function main() {
         "Brightens the skin, reduces dark spots and improves skin texture.",
       price: 8000,
       stock: 25,
-      category: Category.cosmetics,
       featured: true,
       published: true,
+      categoryId: cosmetics.id,
 
       images: {
         create: [
@@ -44,9 +60,9 @@ async function main() {
         "Traditional African black soap for healthy glowing skin.",
       price: 4500,
       stock: 40,
-      category: Category.organic,
       featured: true,
       published: true,
+      categoryId: organic.id,
 
       images: {
         create: [
@@ -70,9 +86,9 @@ async function main() {
         "Pure unrefined shea butter suitable for skin and hair.",
       price: 3500,
       stock: 30,
-      category: Category.organic,
       featured: false,
       published: true,
+      categoryId: organic.id,
 
       images: {
         create: [
