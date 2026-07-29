@@ -18,6 +18,7 @@ export default async function ProductPage({ params }: PageProps) {
     },
     include: {
       images: true,
+      category: true,
     },
   });
 
@@ -45,7 +46,7 @@ export default async function ProductPage({ params }: PageProps) {
 
           <div>
             <span className="rounded-full bg-green-100 px-4 py-2 text-green-700">
-              {product.category}
+              {product.category.name}
             </span>
 
             <h1 className="mt-6 text-5xl font-bold text-[#16301F]">
