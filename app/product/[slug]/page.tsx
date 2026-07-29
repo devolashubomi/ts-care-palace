@@ -1,136 +1,77 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { prisma } from "@/lib/prisma";
-import { deleteProduct } from "./actions/productActions";
-import { isAuthenticated } from "@/lib/auth";
 
-export default async function ProductsPage() {
-  const authenticated = await isAuthenticated();
+type PageProps = {
+  params: Promise<{
+    slug: string;
+  }>;
+};
 
-  if (!authenticated) {
-    redirect("/admin/login");
-  }
+export default async function ProductPage({ params }: PageProps) {
+  const { slug } = await params;
 
-  const products = await prisma.product.findMany({
+  const product = await prisma.product.findUnique({
+    where: {
+      slug,
+    },
     include: {
       images: true,
     },
-    orderBy: {
-      createdAt: "desc",
-    },
   });
 
+  if (!product) {
+    notFound();
+  }
+
   return (
-    <main className="container mx-auto px-6 py-10">
-      <div className="mb-10 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/admin"
-            className="rounded-lg border border-[#16301F] px-5 py-3 text-[#16301F] transition hover:bg-[#16301F] hover:text-white"
-          >
-            ← Dashboard
-          </Link>
+    <>
+      <Header />
 
-          <h1 className="text-4xl font-bold text-[#16301F]">
-            Products
-          </h1>
+      <main className="container mx-auto px-6 py-16">
+        <div className="grid gap-12 lg:grid-cols-2">
+          <div>
+            <img
+              src={
+                product.images.length
+                  ? product.images[0].imageUrl
+                  : "/placeholder.png"
+              }
+              alt={product.name}
+              className="w-full rounded-3xl shadow-lg"
+            />
+          </div>
+
+          <div>
+            <span className="rounded-full bg-green-100 px-4 py-2 text-green-700">
+              {product.category}
+            </span>
+
+            <h1 className="mt-6 text-5xl font-bold text-[#16301F]">
+              {product.name}
+            </h1>
+
+            <p className="mt-6 text-4xl font-bold text-[#A9822E]">
+              ₦{product.price.toLocaleString()}
+            </p>
+
+            <p className="mt-8 text-lg leading-8 text-gray-700">
+              {product.description}
+            </p>
+
+            <p className="mt-8 text-lg">
+              <strong>Stock:</strong> {product.stock}
+            </p>
+
+            <button className="mt-10 rounded-xl bg-[#16301F] px-8 py-4 text-lg font-semibold text-white transition hover:bg-[#21452c]">
+              Add to Cart
+            </button>
+          </div>
         </div>
+      </main>
 
-        <Link
-          href="/admin/products/new"
-          className="rounded-xl bg-[#16301F] px-6 py-3 text-white transition hover:bg-[#21452c]"
-        >
-          + Add Product
-        </Link>
-      </div>
-
-      <div className="overflow-hidden rounded-2xl bg-white shadow">
-        <table className="w-full">
-          <thead className="bg-[#16301F] text-white">
-            <tr>
-              <th className="p-4 text-left">Image</th>
-              <th className="p-4 text-left">Name</th>
-              <th className="p-4 text-left">Category</th>
-              <th className="p-4 text-left">Price</th>
-              <th className="p-4 text-left">Stock</th>
-              <th className="p-4 text-left">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {products.map((product) => (
-              <tr
-                key={product.id}
-                className="border-b hover:bg-gray-50"
-              >
-                <td className="p-4">
-                  <img
-                    src={
-                      product.images[0]?.imageUrl ??
-                      "/placeholder.png"
-                    }
-                    alt={product.name}
-                    className="h-16 w-16 rounded-lg object-cover"
-                  />
-                </td>
-
-                <td className="p-4 font-medium">
-                  {product.name}
-                </td>
-
-                <td className="p-4 capitalize">
-                  {product.category}
-                </td>
-
-                <td className="p-4">
-                  ₦{product.price.toLocaleString()}
-                </td>
-
-                <td className="p-4">
-                  {product.stock}
-                </td>
-
-                <td className="p-4">
-                  <div className="flex gap-3">
-                    <Link
-                      href={`/admin/products/${product.id}/edit`}
-                      className="rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
-                    >
-                      Edit
-                    </Link>
-
-                    <form action={deleteProduct}>
-                      <input
-                        type="hidden"
-                        name="id"
-                        value={product.id}
-                      />
-
-                      <button
-                        type="submit"
-                        className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
-                      >
-                        Delete
-                      </button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
-            ))}
-
-            {products.length === 0 && (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="p-10 text-center text-gray-500"
-                >
-                  No products available.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </main>
+      <Footer />
+    </>
   );
 }
